@@ -26,6 +26,43 @@ class Quiz:
     def is_correct(self, user_answer):
         return user_answer == self.answer
 
+    # Quiz 객체를 딕셔너리로 변환
+    def to_dict(self):
+        return {
+            "question": self.question,
+            "choices": self.choices,
+            "answer": self.answer,
+            "explanation": self.explanation
+        }
+
+    # 딕셔너리를 Quiz 객체로 변환
+    @classmethod
+    def from_dict(cls, data):
+        if not isinstance(data, dict):
+            raise ValueError("퀴즈 데이터 형식이 올바르지 않습니다.")
+
+        question = data["question"]
+        choices = data["choices"]
+        answer = data["answer"]
+        explanation = data["explanation"]
+
+        if (
+            not isinstance(question, str)
+            or not question.strip()
+            or not isinstance(choices, list)
+            or len(choices) != 4
+            or any(
+                not isinstance(choice, str) or not choice.strip()
+                for choice in choices
+            )
+            or type(answer) is not int
+            or answer not in range(1, 5)
+            or not isinstance(explanation, str)
+        ):
+            raise ValueError("퀴즈 데이터 값이 올바르지 않습니다.")
+
+        return cls(question, choices, answer, explanation)
+
 
 # 게임 전체 관리 클래스
 class QuizGame:
@@ -65,40 +102,100 @@ class QuizGame:
         ]
 
         # 최고 점수
-        self.best_score = self.load_best_score()
+        self.best_score = None
 
-    # 최고 점수 불러오기
-    def load_best_score(self):
+        # 저장된 데이터 불러오기
+        self.load_state()
+
+    # 퀴즈 데이터 및 최고 점수 불러오기
+    def load_state(self):
         if not os.path.exists(STATE_FILE):
-            return None
+            print("저장된 파일이 없어 기본 퀴즈로 시작합니다.")
+            return
 
         try:
             with open(STATE_FILE, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
-            score = data.get("best_score")
+            if not isinstance(data, dict):
+                raise ValueError("저장 파일 형식이 올바르지 않습니다.")
 
-            if type(score) is int and score >= 0:
-                return score
+            # 최고 점수 불러오기
+            best_score = data.get("best_score")
 
-            return None
+            if (
+                best_score is not None
+                and (type(best_score) is not int or best_score < 0)
+            ):
+                raise ValueError("최고 점수 데이터가 올바르지 않습니다.")
 
-        except (OSError, json.JSONDecodeError, AttributeError):
-            print("저장된 점수 파일을 불러올 수 없습니다.")
-            return None
+            # 퀴즈 목록 불러오기
+            if "quizzes" in data:
+                saved_quizzes = data["quizzes"]
 
-    # 최고 점수 저장하기
-    def save_best_score(self):
+                if not isinstance(saved_quizzes, list):
+                    raise ValueError("퀴즈 목록 형식이 올바르지 않습니다.")
+
+                loaded_quizzes = [
+                    Quiz.from_dict(quiz_data)
+                    for quiz_data in saved_quizzes
+                ]
+
+                self.quizzes = loaded_quizzes
+
+            self.best_score = best_score
+
+            print("저장된 데이터를 불러왔습니다.")
+
+        except (
+            OSError,
+            UnicodeError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            ValueError
+        ) as error:
+            print(f"저장된 데이터를 불러오지 못했습니다: {error}")
+            print("기본 퀴즈로 시작합니다.")
+            # __init__에서 설정한 기본 퀴즈와 최고 점수를 유지
+
+    # 퀴즈 데이터 및 최고 점수 저장하기
+    def save_state(self):
         data = {
+            "quizzes": [
+                quiz.to_dict()
+                for quiz in self.quizzes
+            ],
             "best_score": self.best_score
         }
 
-        try:
-            with open(STATE_FILE, "w", encoding="utf-8") as file:
-                json.dump(data, file, ensure_ascii=False, indent=4)
+        # 임시 파일에 먼저 저장
+        temp_file = STATE_FILE + ".tmp"
 
-        except OSError:
-            print("최고 점수를 파일에 저장하지 못했습니다.")
+        try:
+            with open(temp_file, "w", encoding="utf-8") as file:
+                json.dump(
+                    data,
+                    file,
+                    ensure_ascii=False,
+                    indent=4
+                )
+
+            # 저장 완료 후 기존 파일 교체
+            os.replace(temp_file, STATE_FILE)
+
+            return True
+
+        except (OSError, UnicodeError, TypeError, ValueError) as error:
+            print(f"데이터 저장 중 오류가 발생했습니다: {error}")
+
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except OSError:
+                pass
+
+            return False
 
     # 최고 점수 확인 기능
     def show_best_score(self):
@@ -180,8 +277,11 @@ class QuizGame:
         new_quiz = Quiz(question, choices, answer, explanation)
         self.quizzes.append(new_quiz)
 
-        print()
-        print("퀴즈가 성공적으로 추가되었습니다!")
+        # 퀴즈 추가 후 파일 저장
+        if self.save_state():
+            print("\n퀴즈가 성공적으로 추가 및 저장되었습니다!")
+        else:
+            print("\n퀴즈는 추가되었지만 파일 저장에 실패했습니다.")
 
     # 퀴즈 풀기 기능
     def play_quiz(self):
@@ -241,8 +341,12 @@ class QuizGame:
         # 최고 점수 비교 및 갱신
         if self.best_score is None or score > self.best_score:
             self.best_score = score
-            self.save_best_score()
-            print("\n새로운 최고 점수를 달성했습니다!")
+
+            # 최고 점수 갱신 후 파일 저장
+            if self.save_state():
+                print("\n새로운 최고 점수를 달성했습니다!")
+            else:
+                print("\n최고 점수가 갱신되었지만 저장에 실패했습니다.")
 
         print(f"최고 점수: {self.best_score}점")
 
