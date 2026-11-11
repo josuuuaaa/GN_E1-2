@@ -53,6 +53,24 @@ quizzes = [
     )
 ]
 
+# 퀴즈 목록 조회 기능
+def show_quiz_list():
+    os.system("cls")
+
+    print("=============================")
+    print("         퀴즈 목록")
+    print("=============================")
+
+    if not quizzes:
+        print("등록된 퀴즈가 없습니다.")
+        return
+
+    for index, quiz in enumerate(quizzes, start=1):
+        print(f"{index}. {quiz.question}")
+        print(f"   보기 개수: {len(quiz.choices)}개")
+        print(f"   정답 번호: {quiz.answer}")
+        print()
+
 
 # 퀴즈 추가 기능
 def add_quiz():
@@ -192,7 +210,7 @@ while True:
         add_quiz()
 
     elif choice == "3":
-        print("퀴즈 목록 기능은 아직 준비 중입니다.")
+        show_quiz_list()
 
     elif choice == "4":
         print("최고 점수 확인 기능은 아직 준비 중입니다.")
