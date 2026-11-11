@@ -54,6 +54,59 @@ quizzes = [
 ]
 
 
+# 퀴즈 추가 기능
+def add_quiz():
+    os.system("cls")
+
+    print("=============================")
+    print("         퀴즈 추가")
+    print("=============================")
+
+    question = input("문제를 입력하세요: ").strip()
+
+    if question == "":
+        print("문제 내용은 비워둘 수 없습니다.")
+        return
+
+    choices = []
+
+    for i in range(1, 5):
+        choice = input(f"{i}번 보기를 입력하세요: ").strip()
+
+        if choice == "":
+            print("보기 내용은 비워둘 수 없습니다.")
+            return
+
+        choices.append(choice)
+
+    while True:
+        answer_input = input("정답 번호를 입력하세요 (1~4): ").strip()
+
+        if answer_input == "":
+            print("정답 번호를 입력해주세요.")
+
+        elif not answer_input.isdigit():
+            print("숫자를 입력해주세요.")
+
+        elif int(answer_input) not in range(1, 5):
+            print("1부터 4까지의 숫자만 입력해주세요.")
+
+        else:
+            answer = int(answer_input)
+            break
+
+    explanation = input("해설을 입력하세요: ").strip()
+
+    if explanation == "":
+        explanation = "해설이 없습니다."
+
+    new_quiz = Quiz(question, choices, answer, explanation)
+    quizzes.append(new_quiz)
+
+    print()
+    print("퀴즈가 성공적으로 추가되었습니다!")
+
+
 # 퀴즈 풀기 기능
 def play_quiz():
     if not quizzes:
@@ -136,7 +189,7 @@ while True:
         play_quiz()
 
     elif choice == "2":
-        print("퀴즈 추가 기능은 아직 준비 중입니다.")
+        add_quiz()
 
     elif choice == "3":
         print("퀴즈 목록 기능은 아직 준비 중입니다.")
