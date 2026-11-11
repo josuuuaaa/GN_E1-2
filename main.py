@@ -23,33 +23,33 @@ class Quiz:
 quizzes = [
     Quiz(
         "Python에서 화면에 글자를 출력할 때 사용하는 함수는?",
-        ["input()", "print()", "len()", "type()"],
-        2,
+        ["echo()", "console.log()", "print()", "write()"],
+        3,
         "print() 함수는 화면에 값을 출력할 때 사용합니다."
     ),
     Quiz(
         "Python에서 사용자 입력을 받을 때 사용하는 함수는?",
-        ["print()", "input()", "int()", "str()"],
+        ["scan()", "input()", "read()", "get()"],
         2,
         "input() 함수는 사용자가 입력한 값을 문자열로 받습니다."
     ),
     Quiz(
-        "Git에서 현재 변경 상태를 확인하는 명령어는?",
-        ["git status", "git add", "git commit", "git push"],
+        "Python에서 문자열의 길이를 구할 때 사용하는 함수는?",
+        ["count()", "size()", "length()", "len()"],
+        4,
+        "len() 함수는 문자열, 리스트 등의 길이를 구할 때 사용합니다."
+    ),
+    Quiz(
+        "Python에서 숫자 10을 문자열로 변환할 때 사용하는 코드는?",
+        ["str(10)", "string(10)", "toString(10)", "char(10)"],
         1,
-        "git status는 현재 파일 변경 상태와 스테이징 상태를 확인할 때 사용합니다."
+        "str() 함수는 숫자나 다른 값을 문자열로 변환할 때 사용합니다."
     ),
     Quiz(
-        "Git에서 변경된 파일을 스테이징 영역에 추가하는 명령어는?",
-        ["git commit", "git add", "git log", "git init"],
+        "Python에서 조건문을 작성할 때 사용하는 키워드는?",
+        ["when", "if", "check", "condition"],
         2,
-        "git add는 변경된 파일을 커밋하기 전에 스테이징 영역에 올리는 명령어입니다."
-    ),
-    Quiz(
-        "Git에서 커밋을 만들 때 사용하는 명령어는?",
-        ["git status", "git add", "git commit", "git branch"],
-        3,
-        "git commit은 스테이징된 변경 사항을 하나의 기록으로 저장합니다."
+        "if 키워드는 조건에 따라 다른 코드를 실행할 때 사용합니다."
     )
 ]
 
@@ -57,7 +57,7 @@ quizzes = [
 # 퀴즈 풀기 기능
 def play_quiz():
     if not quizzes:
-        print("등록된 퀴즈가 없습니다.")
+        print("등록된 퀴즈가 없습니다. 2번으로 퀴즈를 추가해주세요!")
         return
 
     score = 0
