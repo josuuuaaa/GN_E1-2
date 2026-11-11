@@ -1,5 +1,13 @@
 
 import os
+import json
+
+
+# 저장 파일 경로
+STATE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "state.json"
+)
 
 
 class Quiz:
@@ -52,6 +60,56 @@ quizzes = [
         "if 키워드는 조건에 따라 다른 코드를 실행할 때 사용합니다."
     )
 ]
+
+
+# 최고 점수 불러오기
+def load_best_score():
+    if not os.path.exists(STATE_FILE):
+        return None
+
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        score = data.get("best_score")
+
+        if type(score) is int and score >= 0:
+            return score
+
+        return None
+
+    except (OSError, json.JSONDecodeError, AttributeError):
+        print("저장된 점수 파일을 불러올 수 없습니다.")
+        return None
+
+
+# 최고 점수 저장하기
+def save_best_score():
+    data = {
+        "best_score": best_score
+    }
+
+    try:
+        with open(STATE_FILE, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+
+    except OSError:
+        print("최고 점수를 파일에 저장하지 못했습니다.")
+
+
+# 최고 점수 확인 기능
+def show_best_score():
+    os.system("cls")
+
+    print("=============================")
+    print("         최고 점수")
+    print("=============================")
+
+    if best_score is None:
+        print("아직 퀴즈를 풀지 않았습니다.")
+    else:
+        print(f"현재 최고 점수: {best_score}점")
+
 
 # 퀴즈 목록 조회 기능
 def show_quiz_list():
@@ -127,6 +185,8 @@ def add_quiz():
 
 # 퀴즈 풀기 기능
 def play_quiz():
+    global best_score
+
     if not quizzes:
         print("등록된 퀴즈가 없습니다. 2번으로 퀴즈를 추가해주세요!")
         return
@@ -180,6 +240,18 @@ def play_quiz():
     print(f"맞힌 문제 수: {score}")
     print(f"틀린 문제 수: {len(quizzes) - score}")
 
+    # 최고 점수 비교 및 갱신
+    if best_score is None or score > best_score:
+        best_score = score
+        save_best_score()
+        print("\n새로운 최고 점수를 달성했습니다!")
+
+    print(f"최고 점수: {best_score}점")
+
+
+# 저장된 최고 점수 불러오기
+best_score = load_best_score()
+
 
 # 메인 메뉴
 while True:
@@ -213,7 +285,7 @@ while True:
         show_quiz_list()
 
     elif choice == "4":
-        print("최고 점수 확인 기능은 아직 준비 중입니다.")
+        show_best_score()
 
     elif choice == "5":
         print("프로그램을 종료합니다.")
