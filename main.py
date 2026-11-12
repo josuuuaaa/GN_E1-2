@@ -398,8 +398,34 @@ class QuizGame:
 
             input("\n계속하려면 Enter를 누르세요...")
 
+# 프로그램 시작 및 안전한 종료 처리
+def main():
+    game = None
 
-# 프로그램 시작
+    try:
+        game = QuizGame()
+        game.run()
+
+    except KeyboardInterrupt:
+        # Ctrl+C: 어느 입력 단계에서든 예외를 받아 안전하게 종료
+        print("\nCtrl+C가 감지되었습니다. 프로그램을 안전하게 종료합니다.")
+
+    except EOFError:
+        # 입력 스트림이 닫힌 경우(예: 터미널의 입력 종료)
+        print("\n입력이 종료되었습니다(EOF). 프로그램을 안전하게 종료합니다.")
+
+    finally:
+        # 정상 종료 및 예외 종료 모두 현재까지 확정된 데이터를 저장
+        if game is not None:
+            print("종료 전 데이터를 저장합니다...")
+            if game.save_state():
+                print("데이터 저장이 완료되었습니다.")
+            else:
+                print("데이터 저장에 실패했습니다. 저장 파일을 확인해주세요.")
+
+        print("프로그램이 종료되었습니다.")
+
+
 if __name__ == "__main__":
-    game = QuizGame()
-    game.run()
+    main()
+
